@@ -102,17 +102,26 @@ final class OverlayWindowManager {
             return
         }
 
+        // CGEvent座標系からCocoa（NSScreen）座標系に変換
+        // CGEvent: メインディスプレイ左上が原点、Y軸下向き正
+        // Cocoa: メインディスプレイ左下が原点、Y軸上向き正
+        guard let mainScreen = NSScreen.screens.first else {
+            return
+        }
+        let cocoaY = mainScreen.frame.height - location.y
+        let cocoaLocation = NSPoint(x: location.x, y: cocoaY)
+
         // クリック位置のスクリーンを取得
-        guard let screen = findScreen(containing: NSPoint(x: location.x, y: location.y)) else {
+        guard let screen = findScreen(containing: cocoaLocation) else {
             return
         }
 
         // ウィンドウをそのスクリーンに移動
         moveWindowToScreen(clickWindow, screen: screen)
 
-        // 座標変換（スクリーンローカル座標へ）
-        let screenLocalX = location.x - screen.frame.origin.x
-        let screenLocalY = screen.frame.height - (location.y - screen.frame.origin.y)
+        // スクリーンローカル座標へ変換（SwiftUI用：左上原点、Y軸下向き正）
+        let screenLocalX = cocoaLocation.x - screen.frame.origin.x
+        let screenLocalY = screen.frame.height - (cocoaLocation.y - screen.frame.origin.y)
 
         let clickItem = ClickEffectItem(
             location: CGPoint(x: screenLocalX, y: screenLocalY),

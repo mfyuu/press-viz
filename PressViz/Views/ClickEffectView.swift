@@ -8,7 +8,7 @@ struct ClickEffectView: View {
 
     var body: some View {
         Circle()
-            .stroke(Color.white, lineWidth: 3)
+            .stroke(Color.blue, lineWidth: 3)
             .frame(width: 50, height: 50)
             .scaleEffect(scale)
             .opacity(opacity)

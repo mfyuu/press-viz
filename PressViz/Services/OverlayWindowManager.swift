@@ -8,6 +8,8 @@ final class KeyOverlayState {
     var keyText: String = ""
     var isVisible: Bool = false
     var position: DisplayPosition = .bottomCenter
+    /// アニメーショントリガー（キーが押されるたびにインクリメント）
+    var pressCount: Int = 0
 }
 
 /// クリックエフェクトの状態を管理
@@ -79,9 +81,14 @@ final class OverlayWindowManager {
             moveWindowToScreen(keyWindow, screen: screen)
         }
 
+        // 同じキーの連打時のみアニメーションをトリガー
+        let isSameKey = keyState.keyText == displayText
         keyState.keyText = displayText
         keyState.position = AppSettings.shared.displayPosition
         keyState.isVisible = true
+        if isSameKey {
+            keyState.pressCount += 1
+        }
         keyDisplayTimestamp = Date()
     }
 
@@ -189,6 +196,7 @@ final class OverlayWindowManager {
 struct KeyOverlayViewWithState: View {
     @Bindable var state: KeyOverlayState
     let screenFrame: CGRect
+    @State private var scale: CGFloat = 1.0
 
     var body: some View {
         GeometryReader { geometry in
@@ -203,7 +211,17 @@ struct KeyOverlayViewWithState: View {
                             .fill(.black.opacity(0.75))
                             .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
                     }
+                    .scaleEffect(scale)
                     .position(calculatePosition(in: geometry.size))
+                    .onChange(of: state.pressCount) {
+                        // パルスアニメーション
+                        withAnimation(.easeOut(duration: 0.08)) {
+                            scale = 1.15
+                        }
+                        withAnimation(.easeInOut(duration: 0.12).delay(0.08)) {
+                            scale = 1.0
+                        }
+                    }
             }
         }
         .ignoresSafeArea()

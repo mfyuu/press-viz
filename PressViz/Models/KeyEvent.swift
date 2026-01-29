@@ -78,7 +78,7 @@ private func keyCodeToString(_ keyCode: UInt16) -> String {
     case kVK_Tab: return "⇥"
     case kVK_Space: return "␣"
     case kVK_Delete: return "⌫"
-    case kVK_Escape: return "⎋"
+    case kVK_Escape: return "esc"
     case kVK_ForwardDelete: return "⌦"
     case kVK_Home: return "↖"
     case kVK_End: return "↘"

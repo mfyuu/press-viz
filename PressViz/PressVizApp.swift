@@ -1,17 +1,13 @@
-//
-//  PressVizApp.swift
-//  PressViz
-//
-//  Created by mfyuu on 2026/01/29.
-//
-
 import SwiftUI
 
 @main
 struct PressVizApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        // メニューバーアプリなのでWindowGroupは使用しない
+        Settings {
+            EmptyView()
         }
     }
 }

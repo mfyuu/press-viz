@@ -279,26 +279,16 @@ struct KeyOverlayViewWithState: View {
         .ignoresSafeArea()
     }
 
-    /// 文字に応じたbaselineOffsetを返す
+    /// 特定キーのbaselineOffsetを返す
     private func baselineOffset(for char: Character) -> CGFloat {
-        // Enterキー（↩）は他より下に
-        if char == "↩" {
-            return -5
+        switch char {
+        case "↩":
+            return -5  // Enterは下に補正
+        case "e", "s", "c", "+", "-":
+            return 3   // esc, +, - は上に補正
+        default:
+            return 0
         }
-        // 下に移動が必要な記号（矢印・特殊キー記号）
-        let needsDownward: Set<Character> = ["↑", "↓", "←", "→", "⇥", "⌫", "⌦", "⎋"]
-        // 修飾キー記号
-        let modifierSymbols: Set<Character> = ["⌃", "⌥", "⇧", "⌘", "⇪", "🌐"]
-
-        if needsDownward.contains(char) {
-            return -3  // 下に移動
-        } else if modifierSymbols.contains(char) {
-            return -2  // やや下に移動
-        } else if char.isLowercase {
-            return 2  // 小文字は上に移動（esc用）
-        }
-        // 通常の文字はオフセットなし
-        return 0
     }
 
     private func calculatePosition(in size: CGSize) -> CGPoint {

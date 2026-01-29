@@ -17,6 +17,8 @@ final class KeyOverlayState {
 @MainActor
 final class ClickEffectState {
     var clicks: [ClickEffectItem] = []
+    /// 現在ドラッグ中のクリックID
+    var draggingClickId: UUID?
 }
 
 /// オーバーレイウィンドウを管理
@@ -97,11 +99,22 @@ final class OverlayWindowManager {
         keyState.keyText = ""
     }
 
-    func showClickEffect(at location: CGPoint) {
+    func handleClickEvent(at location: CGPoint, isRelease: Bool) {
         guard AppSettings.shared.showClickEffect else {
             return
         }
 
+        // マウスアップ時：ドラッグ中のクリックを終了
+        if isRelease {
+            if let draggingId = clickState.draggingClickId,
+               let index = clickState.clicks.firstIndex(where: { $0.id == draggingId }) {
+                clickState.clicks[index].isDragging = false
+                clickState.draggingClickId = nil
+            }
+            return
+        }
+
+        // マウスダウン時：新しいクリックを追加
         // CGEvent座標系からCocoa（NSScreen）座標系に変換
         // CGEvent: メインディスプレイ左上が原点、Y軸下向き正
         // Cocoa: メインディスプレイ左下が原点、Y軸上向き正
@@ -125,10 +138,11 @@ final class OverlayWindowManager {
 
         let clickItem = ClickEffectItem(
             location: CGPoint(x: screenLocalX, y: screenLocalY),
-            timestamp: Date()
+            isDragging: true
         )
 
         clickState.clicks.append(clickItem)
+        clickState.draggingClickId = clickItem.id
     }
 
     // MARK: - Private Methods
@@ -169,9 +183,9 @@ final class OverlayWindowManager {
     private func cleanupExpiredClicks() {
         let now = Date()
 
-        // クリックエフェクトのクリーンアップ
+        // クリックエフェクトのクリーンアップ（ドラッグ中は除外）
         let clickExpiredThreshold: TimeInterval = 0.5
-        clickState.clicks.removeAll { now.timeIntervalSince($0.timestamp) > clickExpiredThreshold }
+        clickState.clicks.removeAll { !$0.isDragging && now.timeIntervalSince($0.timestamp) > clickExpiredThreshold }
 
         // キー表示のクリーンアップ（一定時間後に消える）
         // ただし、キーが押されている間はスキップ
@@ -197,6 +211,30 @@ final class OverlayWindowManager {
         if window.frame != screen.frame {
             window.setFrame(screen.frame, display: true)
         }
+    }
+
+    func updateDragPosition(at location: CGPoint) {
+        guard let draggingId = clickState.draggingClickId,
+              let index = clickState.clicks.firstIndex(where: { $0.id == draggingId }) else {
+            return
+        }
+
+        // CGEvent座標系からCocoa座標系に変換
+        guard let mainScreen = NSScreen.screens.first else { return }
+        let cocoaY = mainScreen.frame.height - location.y
+        let cocoaLocation = NSPoint(x: location.x, y: cocoaY)
+
+        // スクリーンを取得
+        guard let screen = findScreen(containing: cocoaLocation) else { return }
+
+        // ウィンドウをそのスクリーンに移動
+        moveWindowToScreen(clickWindow, screen: screen)
+
+        // スクリーンローカル座標へ変換
+        let screenLocalX = cocoaLocation.x - screen.frame.origin.x
+        let screenLocalY = screen.frame.height - (cocoaLocation.y - screen.frame.origin.y)
+
+        clickState.clicks[index].location = CGPoint(x: screenLocalX, y: screenLocalY)
     }
 }
 
@@ -266,7 +304,7 @@ struct ClickEffectContainerWithState: View {
     var body: some View {
         ZStack {
             ForEach(state.clicks) { click in
-                ClickEffectView(location: click.location)
+                ClickEffectView(location: click.location, isDragging: click.isDragging)
             }
         }
         .ignoresSafeArea()

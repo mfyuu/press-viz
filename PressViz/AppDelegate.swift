@@ -136,8 +136,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // クリックイベントの処理
         if let clickEvent = inputMonitor.currentClickEvent {
-            overlayManager.showClickEffect(at: clickEvent.location)
+            overlayManager.handleClickEvent(at: clickEvent.location, isRelease: clickEvent.isRelease)
             inputMonitor.clearClickEvent()
+        }
+
+        // ドラッグイベントの処理
+        if let dragLocation = inputMonitor.currentDragLocation {
+            overlayManager.updateDragPosition(at: dragLocation)
+            inputMonitor.clearDragLocation()
         }
     }
 }

@@ -8,6 +8,7 @@ struct ClickEvent: Sendable {
     let location: CGPoint
     let screenFrame: CGRect
     let timestamp: Date
+    let isRelease: Bool
 }
 
 /// 入力イベントを監視
@@ -25,6 +26,9 @@ final class InputEventMonitor {
 
     /// 現在のクリックイベント
     private(set) var currentClickEvent: ClickEvent?
+
+    /// 現在のドラッグ位置（CGEvent座標系）
+    private(set) var currentDragLocation: CGPoint?
 
     /// 現在押されているキーコード
     private var pressedKeyCodes: Set<UInt16> = []
@@ -57,13 +61,27 @@ final class InputEventMonitor {
         }
 
 
-        let eventMask: CGEventMask =
+        let keyMask: CGEventMask =
             (1 << CGEventType.keyDown.rawValue) |
             (1 << CGEventType.keyUp.rawValue) |
-            (1 << CGEventType.flagsChanged.rawValue) |
+            (1 << CGEventType.flagsChanged.rawValue)
+
+        let mouseDownMask: CGEventMask =
             (1 << CGEventType.leftMouseDown.rawValue) |
             (1 << CGEventType.rightMouseDown.rawValue) |
             (1 << CGEventType.otherMouseDown.rawValue)
+
+        let mouseUpMask: CGEventMask =
+            (1 << CGEventType.leftMouseUp.rawValue) |
+            (1 << CGEventType.rightMouseUp.rawValue) |
+            (1 << CGEventType.otherMouseUp.rawValue)
+
+        let mouseDragMask: CGEventMask =
+            (1 << CGEventType.leftMouseDragged.rawValue) |
+            (1 << CGEventType.rightMouseDragged.rawValue) |
+            (1 << CGEventType.otherMouseDragged.rawValue)
+
+        let eventMask = keyMask | mouseDownMask | mouseUpMask | mouseDragMask
 
         let callback: CGEventTapCallBack = { _, type, event, userInfo in
             guard let userInfo else { return Unmanaged.passRetained(event) }
@@ -121,6 +139,11 @@ final class InputEventMonitor {
         currentClickEvent = nil
     }
 
+    /// ドラッグ位置をクリア
+    func clearDragLocation() {
+        currentDragLocation = nil
+    }
+
     // MARK: - Internal Methods
 
     nonisolated func handleEvent(_ event: CGEvent) {
@@ -135,7 +158,11 @@ final class InputEventMonitor {
             case .flagsChanged:
                 self.handleFlagsChanged(event)
             case .leftMouseDown, .rightMouseDown, .otherMouseDown:
-                self.handleMouseDown(event)
+                self.handleMouseEvent(event, isRelease: false)
+            case .leftMouseUp, .rightMouseUp, .otherMouseUp:
+                self.handleMouseEvent(event, isRelease: true)
+            case .leftMouseDragged, .rightMouseDragged, .otherMouseDragged:
+                self.handleMouseDrag(event)
             default:
                 break
             }
@@ -220,7 +247,7 @@ final class InputEventMonitor {
         }
     }
 
-    private func handleMouseDown(_ event: CGEvent) {
+    private func handleMouseEvent(_ event: CGEvent, isRelease: Bool) {
         let location = event.location
 
         // カーソルがあるスクリーンを取得
@@ -231,10 +258,20 @@ final class InputEventMonitor {
         let clickEvent = ClickEvent(
             location: location,
             screenFrame: screenFrame,
-            timestamp: Date()
+            timestamp: Date(),
+            isRelease: isRelease
         )
 
         currentClickEvent = clickEvent
+
+        // マウスアップ時はドラッグ位置をクリア
+        if isRelease {
+            currentDragLocation = nil
+        }
+    }
+
+    private func handleMouseDrag(_ event: CGEvent) {
+        currentDragLocation = event.location
     }
 
     private func updateKeyEvent(_ keyEvent: KeyEvent) {

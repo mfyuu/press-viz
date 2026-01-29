@@ -248,30 +248,57 @@ struct KeyOverlayViewWithState: View {
     var body: some View {
         GeometryReader { geometry in
             if state.isVisible && !state.keyText.isEmpty {
-                Text(state.keyText)
-                    .font(.system(size: 32, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(.black.opacity(0.75))
-                            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
+                HStack(spacing: 0) {
+                    ForEach(Array(state.keyText.enumerated()), id: \.offset) { _, char in
+                        Text(String(char))
+                            .baselineOffset(baselineOffset(for: char))
                     }
-                    .scaleEffect(scale)
-                    .position(calculatePosition(in: geometry.size))
-                    .onChange(of: state.pressCount) {
-                        // パルスアニメーション
-                        withAnimation(.easeOut(duration: 0.08)) {
-                            scale = 1.15
-                        }
-                        withAnimation(.easeInOut(duration: 0.12).delay(0.08)) {
-                            scale = 1.0
-                        }
+                }
+                .font(.system(size: 32, weight: .medium, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.black.opacity(0.75))
+                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
+                }
+                .scaleEffect(scale)
+                .position(calculatePosition(in: geometry.size))
+                .onChange(of: state.pressCount) {
+                    // パルスアニメーション
+                    withAnimation(.easeOut(duration: 0.08)) {
+                        scale = 1.15
                     }
+                    withAnimation(.easeInOut(duration: 0.12).delay(0.08)) {
+                        scale = 1.0
+                    }
+                }
             }
         }
         .ignoresSafeArea()
+    }
+
+    /// 文字に応じたbaselineOffsetを返す
+    private func baselineOffset(for char: Character) -> CGFloat {
+        // Enterキー（↩）は他より下に
+        if char == "↩" {
+            return -5
+        }
+        // 下に移動が必要な記号（矢印・特殊キー記号）
+        let needsDownward: Set<Character> = ["↑", "↓", "←", "→", "⇥", "⌫", "⌦", "⎋"]
+        // 修飾キー記号
+        let modifierSymbols: Set<Character> = ["⌃", "⌥", "⇧", "⌘", "⇪", "🌐"]
+
+        if needsDownward.contains(char) {
+            return -3  // 下に移動
+        } else if modifierSymbols.contains(char) {
+            return -2  // やや下に移動
+        } else if char.isLowercase {
+            return 2  // 小文字は上に移動（esc用）
+        }
+        // 通常の文字はオフセットなし
+        return 0
     }
 
     private func calculatePosition(in size: CGSize) -> CGPoint {

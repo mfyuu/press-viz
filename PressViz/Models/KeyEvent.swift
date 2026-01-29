@@ -19,7 +19,9 @@ struct ModifierFlags: OptionSet, Sendable {
         if contains(.shift) { result.append("⇧") }
         if contains(.command) { result.append("⌘") }
         if contains(.capsLock) { result.append("⇪") }
-        if contains(.function) { result.append("fn") }
+        // Note: .function is intentionally excluded because macOS converts
+        // Fn+key combinations at the hardware level (e.g., Fn+9 → F9),
+        // so displaying "fn" alongside the converted key would be redundant.
         return result
     }
 

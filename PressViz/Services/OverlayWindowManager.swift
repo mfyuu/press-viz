@@ -169,8 +169,9 @@ final class OverlayWindowManager {
 
     private func startCleanupTimer() {
         cleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self else { return }
             Task { @MainActor in
-                self?.cleanupExpiredClicks()
+                self.cleanupExpiredClicks()
             }
         }
     }

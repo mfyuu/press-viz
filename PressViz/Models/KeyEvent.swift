@@ -73,6 +73,7 @@ struct KeyEvent: Sendable, Equatable {
 }
 
 /// キーコードを表示文字列に変換
+/// 修飾キーとの組み合わせで characters が変化するキー（数字、記号）は固定マッピングが必要
 private func keyCodeToString(_ keyCode: UInt16) -> String {
     switch Int(keyCode) {
     // 特殊キー
@@ -111,7 +112,7 @@ private func keyCodeToString(_ keyCode: UInt16) -> String {
     case kVK_F18: return "F18"
     case kVK_F19: return "F19"
     case kVK_F20: return "F20"
-    // 数字キー（メインキーボード）
+    // 数字キー（Shift+数字で記号になるため固定マッピング必要）
     case kVK_ANSI_1: return "1"
     case kVK_ANSI_2: return "2"
     case kVK_ANSI_3: return "3"
@@ -122,34 +123,7 @@ private func keyCodeToString(_ keyCode: UInt16) -> String {
     case kVK_ANSI_8: return "8"
     case kVK_ANSI_9: return "9"
     case kVK_ANSI_0: return "0"
-    // アルファベットキー
-    case kVK_ANSI_A: return "A"
-    case kVK_ANSI_B: return "B"
-    case kVK_ANSI_C: return "C"
-    case kVK_ANSI_D: return "D"
-    case kVK_ANSI_E: return "E"
-    case kVK_ANSI_F: return "F"
-    case kVK_ANSI_G: return "G"
-    case kVK_ANSI_H: return "H"
-    case kVK_ANSI_I: return "I"
-    case kVK_ANSI_J: return "J"
-    case kVK_ANSI_K: return "K"
-    case kVK_ANSI_L: return "L"
-    case kVK_ANSI_M: return "M"
-    case kVK_ANSI_N: return "N"
-    case kVK_ANSI_O: return "O"
-    case kVK_ANSI_P: return "P"
-    case kVK_ANSI_Q: return "Q"
-    case kVK_ANSI_R: return "R"
-    case kVK_ANSI_S: return "S"
-    case kVK_ANSI_T: return "T"
-    case kVK_ANSI_U: return "U"
-    case kVK_ANSI_V: return "V"
-    case kVK_ANSI_W: return "W"
-    case kVK_ANSI_X: return "X"
-    case kVK_ANSI_Y: return "Y"
-    case kVK_ANSI_Z: return "Z"
-    // 記号キー
+    // 記号キー（Shift+記号で別の記号になるため固定マッピング必要）
     case kVK_ANSI_Minus: return "-"
     case kVK_ANSI_Equal: return "="
     case kVK_ANSI_LeftBracket: return "["

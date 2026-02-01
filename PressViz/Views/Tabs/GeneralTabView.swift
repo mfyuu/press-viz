@@ -80,13 +80,16 @@ struct GeneralTabView: View {
     }
 
     private var shortcutSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Global Shortcut")
-                .font(.subheadline)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Global Shortcut")
+                    .font(.subheadline)
+                Text("Shortcut key to toggle ON/OFF")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-            Text("Shortcut key to toggle ON/OFF")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            Spacer()
 
             ShortcutRecorderView(shortcut: $settings.globalShortcut)
         }

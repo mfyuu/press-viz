@@ -148,110 +148,137 @@ struct PositionButton: View {
 struct ShortcutRecorderView: View {
     @Binding var shortcut: GlobalShortcut
     @State private var isRecording = false
+    @State private var keyMonitor: Any?
+    @State private var clickMonitor: Any?
+
+    private let fieldHeight: CGFloat = 28
 
     var body: some View {
-        HStack {
-            if shortcut.isSet {
-                Text(shortcut.displayString)
-                    .font(.system(.body, design: .monospaced))
+        HStack(alignment: .center, spacing: 8) {
+            if isRecording {
+                // Recording 中
+                Text("Press keys...")
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .frame(minWidth: 100)
+                    .frame(height: fieldHeight)
+                    .background {
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.accentColor, lineWidth: 1)
+                    }
+            } else if shortcut.isSet {
+                // 設定済み
+                Text(shortcut.displayString)
+                    .font(.system(.body, design: .rounded))
+                    .tracking(2)
+                    .padding(.horizontal, 12)
+                    .frame(height: fieldHeight)
                     .background {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(.quaternary)
                     }
+                    .onTapGesture {
+                        startRecording()
+                    }
 
-                Button("Clear") {
+                Button {
                     shortcut = .none
                     GlobalShortcutManager.shared.unregister()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.secondary)
+                        .frame(height: fieldHeight)
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.plain)
             } else {
-                Text(isRecording ? "Press keys..." : "Not set")
+                // 未設定
+                Text("Not set")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .frame(minWidth: 100)
+                    .frame(height: fieldHeight)
                     .background {
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(isRecording ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 1)
+                            .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                    }
+                    .onTapGesture {
+                        startRecording()
                     }
             }
+        }
+        .onDisappear {
+            stopRecording()
+        }
+    }
 
-            Spacer()
+    private func startRecording() {
+        isRecording = true
+        print("[ShortcutRecorder] Started recording")
 
-            Button(isRecording ? "Cancel" : "Record") {
-                isRecording.toggle()
+        // キーイベントを監視
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            print("[ShortcutRecorder] Key event received")
+            print("[ShortcutRecorder] keyCode: \(event.keyCode)")
+            print("[ShortcutRecorder] modifierFlags: \(event.modifierFlags.rawValue)")
+
+            // Escape キーでキャンセル
+            if event.keyCode == 53 {
+                print("[ShortcutRecorder] Escape pressed, cancelling")
+                stopRecording()
+                return nil
             }
-            .buttonStyle(.bordered)
+
+            // 修飾キーが押されているか確認
+            let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let hasModifier = modifiers.contains(.command) ||
+                              modifiers.contains(.option) ||
+                              modifiers.contains(.control) ||
+                              modifiers.contains(.shift)
+
+            guard hasModifier else {
+                print("[ShortcutRecorder] No modifier keys, ignoring")
+                return event
+            }
+
+            // Carbon 形式の修飾キーに変換
+            var carbonMods: UInt32 = 0
+            if modifiers.contains(.command) { carbonMods |= UInt32(cmdKey) }
+            if modifiers.contains(.option) { carbonMods |= UInt32(optionKey) }
+            if modifiers.contains(.control) { carbonMods |= UInt32(controlKey) }
+            if modifiers.contains(.shift) { carbonMods |= UInt32(shiftKey) }
+
+            let newShortcut = GlobalShortcut(keyCode: UInt32(event.keyCode), modifiers: carbonMods)
+            print("[ShortcutRecorder] Setting shortcut: \(newShortcut.displayString)")
+
+            shortcut = newShortcut
+            GlobalShortcutManager.shared.updateShortcut(newShortcut)
+            stopRecording()
+
+            return nil // イベントを消費
         }
-        .onKeyPress { keyPress in
-            guard isRecording else { return .ignored }
 
-            // 修飾キーのみの場合は無視
-            if keyPress.modifiers.isEmpty { return .ignored }
-
-            let keyCode = keyCodeFromKeyEquivalent(keyPress.key)
-            let modifiers = carbonModifiersFromSwiftUI(keyPress.modifiers)
-
-            shortcut = GlobalShortcut(keyCode: UInt32(keyCode), modifiers: UInt32(modifiers))
-            GlobalShortcutManager.shared.updateShortcut(shortcut)
-            isRecording = false
-
-            return .handled
-        }
-    }
-
-    private func keyCodeFromKeyEquivalent(_ key: KeyEquivalent) -> Int {
-        // 簡易実装：実際にはより詳細なマッピングが必要
-        switch key.character {
-        case "a": return 0
-        case "s": return 1
-        case "d": return 2
-        case "f": return 3
-        case "h": return 4
-        case "g": return 5
-        case "z": return 6
-        case "x": return 7
-        case "c": return 8
-        case "v": return 9
-        case "b": return 11
-        case "q": return 12
-        case "w": return 13
-        case "e": return 14
-        case "r": return 15
-        case "y": return 16
-        case "t": return 17
-        case "1": return 18
-        case "2": return 19
-        case "3": return 20
-        case "4": return 21
-        case "6": return 22
-        case "5": return 23
-        case "9": return 25
-        case "7": return 26
-        case "8": return 28
-        case "0": return 29
-        case "o": return 31
-        case "u": return 32
-        case "i": return 34
-        case "p": return 35
-        case "l": return 37
-        case "j": return 38
-        case "k": return 40
-        case "n": return 45
-        case "m": return 46
-        default: return 0
+        // クリックで recording をキャンセル
+        clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { event in
+            print("[ShortcutRecorder] Click detected, cancelling recording")
+            stopRecording()
+            return event
         }
     }
 
-    private func carbonModifiersFromSwiftUI(_ modifiers: SwiftUI.EventModifiers) -> Int {
-        var carbonMods = 0
-        if modifiers.contains(.command) { carbonMods |= cmdKey }
-        if modifiers.contains(.option) { carbonMods |= optionKey }
-        if modifiers.contains(.control) { carbonMods |= controlKey }
-        if modifiers.contains(.shift) { carbonMods |= shiftKey }
-        return carbonMods
+    private func stopRecording() {
+        isRecording = false
+        if let monitor = keyMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyMonitor = nil
+        }
+        if let monitor = clickMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickMonitor = nil
+        }
+        print("[ShortcutRecorder] Stopped recording")
     }
 }
 

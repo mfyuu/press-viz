@@ -59,8 +59,8 @@ final class AccessibilityPermissionManager {
 
         checkTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self else { return }
-            Task { @MainActor in
-                self.checkAccessibility()
+            Task { @MainActor [weak self] in
+                self?.checkAccessibility()
             }
         }
     }

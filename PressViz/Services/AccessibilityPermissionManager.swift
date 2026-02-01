@@ -31,12 +31,11 @@ final class AccessibilityPermissionManager {
         let wasEnabled = isAccessibilityEnabled
         isAccessibilityEnabled = AXIsProcessTrusted()
 
-        // 権限が新たに付与された場合、監視を開始
+        // 権限が新たに付与された場合、可視化を開始
         if !wasEnabled && isAccessibilityEnabled {
             AppSettings.shared.hasCompletedOnboarding = true
             AppSettings.shared.isEnabled = true
             AppDelegate.shared?.startVisualization()
-            stopMonitoring() // 権限が付与されたら監視を停止
         }
     }
 

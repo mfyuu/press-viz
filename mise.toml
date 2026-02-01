@@ -1,0 +1,48 @@
+[tasks.build]
+description = "Build for Debug"
+run = "xcodebuild -project PressViz.xcodeproj -scheme PressViz -configuration Debug build"
+
+[tasks.release]
+description = "Build for Release"
+run = "xcodebuild -project PressViz.xcodeproj -scheme PressViz -configuration Release build"
+
+[tasks.clean]
+description = "Clean build artifacts"
+run = "xcodebuild -project PressViz.xcodeproj -scheme PressViz clean"
+
+[tasks.version]
+description = "Show current version"
+run = "grep -m1 'MARKETING_VERSION' PressViz.xcodeproj/project.pbxproj | sed 's/.*= //; s/;$//'"
+
+[tasks."version:set"]
+description = "Set version (usage: mise run version:set 1.0.0)"
+run = "sed -i '' \"s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $1/g\" PressViz.xcodeproj/project.pbxproj && mise run version"
+
+[tasks.dmg]
+description = "Create DMG for distribution"
+depends = ["release"]
+run = """
+#!/usr/bin/env bash
+set -e
+
+APP_NAME="PressViz"
+BUILD_DIR="$HOME/Library/Developer/Xcode/DerivedData"
+APP_PATH=$(find "$BUILD_DIR" -path "*Release/${APP_NAME}.app" -type d | head -1)
+
+if [ -z "$APP_PATH" ]; then
+  echo "Error: ${APP_NAME}.app not found. Run 'mise run release' first."
+  exit 1
+fi
+
+rm -f "${APP_NAME}.dmg"
+create-dmg \
+  --volname "$APP_NAME" \
+  --window-size 600 400 \
+  --icon-size 100 \
+  --icon "$APP_NAME.app" 150 200 \
+  --app-drop-link 450 200 \
+  "${APP_NAME}.dmg" \
+  "$APP_PATH"
+
+echo "Created ${APP_NAME}.dmg"
+"""

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		871260062F2F40CB00B8C3A1 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 871260052F2F40CB00B8C3A1 /* LaunchAtLogin */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		873197442F2B470A006CA088 /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		874323902F2B4471005F25FB /* PressViz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PressViz.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -26,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				871260062F2F40CB00B8C3A1 /* LaunchAtLogin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +76,7 @@
 			);
 			name = PressViz;
 			packageProductDependencies = (
+				871260052F2F40CB00B8C3A1 /* LaunchAtLogin */,
 			);
 			productName = PressViz;
 			productReference = 874323902F2B4471005F25FB /* PressViz.app */;
@@ -100,6 +106,9 @@
 			);
 			mainGroup = 874323872F2B4471005F25FB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				871260042F2F40CB00B8C3A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 874323912F2B4471005F25FB /* Products */;
 			projectDirPath = "";
@@ -329,6 +338,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		871260042F2F40CB00B8C3A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		871260052F2F40CB00B8C3A1 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 871260042F2F40CB00B8C3A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 874323882F2B4471005F25FB /* Project object */;
 }

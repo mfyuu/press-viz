@@ -5,18 +5,35 @@ struct KeyOverlayView: View {
     let keyText: String
     let position: DisplayPosition
     let screenFrame: CGRect
+    let scale: Double
+
+    private var scaledFontSize: CGFloat {
+        32 * scale
+    }
+
+    private var scaledHorizontalPadding: CGFloat {
+        20 * scale
+    }
+
+    private var scaledVerticalPadding: CGFloat {
+        12 * scale
+    }
+
+    private var scaledCornerRadius: CGFloat {
+        12 * scale
+    }
 
     var body: some View {
         GeometryReader { geometry in
             Text(keyText)
-                .font(.system(size: 32, weight: .medium, design: .rounded))
+                .font(.system(size: scaledFontSize, weight: .medium, design: .rounded))
                 .foregroundStyle(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .padding(.horizontal, scaledHorizontalPadding)
+                .padding(.vertical, scaledVerticalPadding)
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: scaledCornerRadius, style: .continuous)
                         .fill(.black.opacity(0.75))
-                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
+                        .shadow(color: .black.opacity(0.3), radius: 10 * scale, x: 0, y: 4 * scale)
                 }
                 .position(calculatePosition(in: geometry.size))
         }

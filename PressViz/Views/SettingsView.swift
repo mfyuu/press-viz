@@ -161,13 +161,13 @@ struct ShortcutRecorderView: View {
                             .fill(.quaternary)
                     }
 
-                Button("クリア") {
+                Button("Clear") {
                     shortcut = .none
                     GlobalShortcutManager.shared.unregister()
                 }
                 .buttonStyle(.borderless)
             } else {
-                Text(isRecording ? "キーを入力..." : "未設定")
+                Text(isRecording ? "Press keys..." : "Not set")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 12)
@@ -180,7 +180,7 @@ struct ShortcutRecorderView: View {
 
             Spacer()
 
-            Button(isRecording ? "キャンセル" : "記録") {
+            Button(isRecording ? "Cancel" : "Record") {
                 isRecording.toggle()
             }
             .buttonStyle(.bordered)

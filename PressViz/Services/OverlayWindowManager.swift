@@ -244,7 +244,27 @@ final class OverlayWindowManager {
 struct KeyOverlayViewWithState: View {
     @Bindable var state: KeyOverlayState
     let screenFrame: CGRect
-    @State private var scale: CGFloat = 1.0
+    @State private var animationScale: CGFloat = 1.0
+
+    private var displayScale: Double {
+        AppSettings.shared.displayScale
+    }
+
+    private var scaledFontSize: CGFloat {
+        32 * displayScale
+    }
+
+    private var scaledHorizontalPadding: CGFloat {
+        20 * displayScale
+    }
+
+    private var scaledVerticalPadding: CGFloat {
+        12 * displayScale
+    }
+
+    private var scaledCornerRadius: CGFloat {
+        12 * displayScale
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -252,27 +272,27 @@ struct KeyOverlayViewWithState: View {
                 HStack(spacing: 0) {
                     ForEach(Array(state.keyText.enumerated()), id: \.offset) { _, char in
                         Text(String(char))
-                            .baselineOffset(baselineOffset(for: char))
+                            .baselineOffset(baselineOffset(for: char) * displayScale)
                     }
                 }
-                .font(.system(size: 32, weight: .medium, design: .rounded))
+                .font(.system(size: scaledFontSize, weight: .medium, design: .rounded))
                 .foregroundStyle(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .padding(.horizontal, scaledHorizontalPadding)
+                .padding(.vertical, scaledVerticalPadding)
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: scaledCornerRadius, style: .continuous)
                         .fill(.black.opacity(0.75))
-                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
+                        .shadow(color: .black.opacity(0.3), radius: 10 * displayScale, x: 0, y: 4 * displayScale)
                 }
-                .scaleEffect(scale)
+                .scaleEffect(animationScale)
                 .position(calculatePosition(in: geometry.size))
                 .onChange(of: state.pressCount) {
                     // パルスアニメーション
                     withAnimation(.easeOut(duration: 0.08)) {
-                        scale = 1.15
+                        animationScale = 1.15
                     }
                     withAnimation(.easeInOut(duration: 0.12).delay(0.08)) {
-                        scale = 1.0
+                        animationScale = 1.0
                     }
                 }
             }

@@ -18,6 +18,7 @@ final class AppSettings {
         static let globalShortcut = "globalShortcut"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let showClickEffect = "showClickEffect"
+        static let displayScale = "displayScale"
     }
 
     // MARK: - Properties
@@ -52,6 +53,11 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(showClickEffect, forKey: Keys.showClickEffect) }
     }
 
+    /// 表示スケール（0.5〜1.5、デフォルト1.0）
+    var displayScale: Double {
+        didSet { UserDefaults.standard.set(displayScale, forKey: Keys.displayScale) }
+    }
+
     // MARK: - Initialization
 
     private init() {
@@ -61,6 +67,7 @@ final class AppSettings {
         self.isEnabled = defaults.object(forKey: Keys.isEnabled) as? Bool ?? true
         self.hasCompletedOnboarding = defaults.bool(forKey: Keys.hasCompletedOnboarding)
         self.showClickEffect = defaults.object(forKey: Keys.showClickEffect) as? Bool ?? true
+        self.displayScale = defaults.object(forKey: Keys.displayScale) as? Double ?? 1.0
 
         // DisplayPosition
         if let positionString = defaults.string(forKey: Keys.displayPosition),

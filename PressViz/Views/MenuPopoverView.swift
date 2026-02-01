@@ -4,30 +4,24 @@ import SwiftUI
 struct MenuPopoverView: View {
     @State private var settings = AppSettings.shared
     @State private var permissionManager = AccessibilityPermissionManager.shared
-    @State private var showingSettings = false
+    @State private var selectedTab: MenuTab = .general
 
     var body: some View {
         VStack(spacing: 0) {
-            // ヘッダー
-            headerSection
-
-            Divider()
-
-            // コンテンツ
+            // アクセシビリティ権限が無い場合
             if !permissionManager.isAccessibilityEnabled {
-                permissionRequiredSection
-            } else if showingSettings {
-                settingsSection
+                permissionRequiredView
             } else {
-                mainSection
+                // タブバー
+                tabBar
+
+                Divider()
+
+                // タブコンテンツ
+                tabContent
             }
-
-            Divider()
-
-            // フッター
-            footerSection
         }
-        .frame(width: 320)
+        .frame(width: 380, height: 420)
         .onAppear {
             permissionManager.startMonitoring()
         }
@@ -36,126 +30,131 @@ struct MenuPopoverView: View {
         }
     }
 
-    // MARK: - Sections
+    // MARK: - Tab Bar
 
-    private var headerSection: some View {
-        HStack {
-            Image(systemName: "keyboard")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-
-            Text("PressViz")
-                .font(.headline)
-
-            Spacer()
-
-            if permissionManager.isAccessibilityEnabled {
-                Toggle("", isOn: $settings.isEnabled)
-                    .toggleStyle(.switch)
-                    .labelsHidden()
+    private var tabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(MenuTab.allCases, id: \.self) { tab in
+                TabButton(tab: tab, isSelected: selectedTab == tab) {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        selectedTab = tab
+                    }
+                }
             }
         }
-        .padding()
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.bar)
     }
 
-    private var permissionRequiredSection: some View {
-        VStack(spacing: 16) {
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .general:
+            GeneralTabView()
+        case .keystroke:
+            KeystrokeTabView()
+        case .click:
+            ClickTabView()
+        case .about:
+            AboutTabView()
+        }
+    }
+
+    // MARK: - Permission Required View
+
+    private var permissionRequiredView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
             Image(systemName: "lock.shield")
-                .font(.system(size: 40))
+                .font(.system(size: 48))
                 .foregroundStyle(.orange)
 
-            Text("アクセシビリティ権限が必要です")
-                .font(.headline)
+            VStack(spacing: 6) {
+                Text("Accessibility Permission Required")
+                    .font(.headline)
+                    .fontWeight(.semibold)
 
-            Text("キーボードとマウスの入力を監視するために、アクセシビリティ権限を許可してください。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                Text("To monitor keyboard and mouse input,\nplease grant accessibility permission.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
 
-            Button("システム環境設定を開く") {
+            Button("Open System Settings") {
                 permissionManager.openAccessibilitySettings()
             }
             .buttonStyle(.borderedProminent)
 
-            Button("権限を確認") {
-                permissionManager.checkAccessibility()
-                if permissionManager.isAccessibilityEnabled {
-                    settings.hasCompletedOnboarding = true
-                    settings.isEnabled = true
-                    AppDelegate.shared?.startVisualization()
-                }
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding()
-    }
-
-    private var mainSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // ステータス表示
-            HStack {
-                Circle()
-                    .fill(settings.isEnabled ? .green : .gray)
-                    .frame(width: 8, height: 8)
-
-                Text(settings.isEnabled ? "有効" : "無効")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-            }
-
-            // クイック設定
-            HStack {
-                Text("表示位置")
-                    .font(.subheadline)
-
-                Spacer()
-
-                Text(settings.displayPosition.displayName)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Text("表示モード")
-                    .font(.subheadline)
-
-                Spacer()
-
-                Text(settings.keyDisplayMode.displayName)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Toggle("クリックエフェクト", isOn: $settings.showClickEffect)
-                .font(.subheadline)
-        }
-        .padding()
-    }
-
-    private var settingsSection: some View {
-        SettingsView()
-    }
-
-    private var footerSection: some View {
-        HStack {
-            Button(showingSettings ? "戻る" : "設定") {
-                withAnimation {
-                    showingSettings.toggle()
-                }
-            }
-            .buttonStyle(.borderless)
-
             Spacer()
 
-            Button("終了") {
+            Button("Quit") {
                 NSApp.terminate(nil)
             }
             .buttonStyle(.borderless)
-            .foregroundStyle(.red)
+            .foregroundStyle(.secondary)
         }
-        .padding()
+        .padding(24)
+    }
+}
+
+// MARK: - Menu Tab Enum
+
+enum MenuTab: String, CaseIterable {
+    case general
+    case keystroke
+    case click
+    case about
+
+    var title: String {
+        switch self {
+        case .general: return "General"
+        case .keystroke: return "Keystroke"
+        case .click: return "Click"
+        case .about: return "About"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .general: return "gearshape"
+        case .keystroke: return "keyboard"
+        case .click: return "cursorarrow.click.2"
+        case .about: return "info.circle"
+        }
+    }
+}
+
+// MARK: - Tab Button
+
+struct TabButton: View {
+    let tab: MenuTab
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: tab.iconName)
+                    .font(.system(size: 18))
+                Text(tab.title)
+                    .font(.caption)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.selection)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? .primary : .secondary)
     }
 }
 

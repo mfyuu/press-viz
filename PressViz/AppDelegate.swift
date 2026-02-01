@@ -58,6 +58,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover?.behavior = .transient
         popover?.animates = true
         popover?.contentViewController = NSHostingController(rootView: MenuPopoverView())
+
+        // ポップオーバーサイズ変更の通知を監視
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updatePopoverSize(_:)),
+            name: .popoverSizeDidChange,
+            object: nil
+        )
+    }
+
+    @objc private func updatePopoverSize(_ notification: Notification) {
+        guard let size = notification.userInfo?["size"] as? NSSize else { return }
+        popover?.contentSize = size
     }
 
     private func setupEventMonitor() {
@@ -146,4 +159,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             inputMonitor.clearDragLocation()
         }
     }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let popoverSizeDidChange = Notification.Name("popoverSizeDidChange")
 }

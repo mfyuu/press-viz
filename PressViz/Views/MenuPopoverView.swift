@@ -5,6 +5,13 @@ struct MenuPopoverView: View {
     @State private var settings = AppSettings.shared
     @State private var permissionManager = AccessibilityPermissionManager.shared
     @State private var selectedTab: MenuTab = .general
+    @State private var isQuitHovering = false
+
+    private var popoverSize: NSSize {
+        permissionManager.isAccessibilityEnabled
+            ? NSSize(width: 380, height: 420)
+            : NSSize(width: 300, height: 280)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,13 +28,25 @@ struct MenuPopoverView: View {
                 tabContent
             }
         }
-        .frame(width: 380, height: 420)
+        .frame(width: popoverSize.width, height: popoverSize.height)
         .onAppear {
             permissionManager.startMonitoring()
+            updatePopoverSize()
         }
         .onDisappear {
             permissionManager.stopMonitoring()
         }
+        .onChange(of: permissionManager.isAccessibilityEnabled) {
+            updatePopoverSize()
+        }
+    }
+
+    private func updatePopoverSize() {
+        NotificationCenter.default.post(
+            name: .popoverSizeDidChange,
+            object: nil,
+            userInfo: ["size": popoverSize]
+        )
     }
 
     // MARK: - Tab Bar
@@ -66,7 +85,7 @@ struct MenuPopoverView: View {
     // MARK: - Permission Required View
 
     private var permissionRequiredView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Spacer()
 
             Image(systemName: "lock.shield")
@@ -84,20 +103,37 @@ struct MenuPopoverView: View {
                     .multilineTextAlignment(.center)
             }
 
-            Button("Open System Settings") {
+            Button {
                 permissionManager.openAccessibilitySettings()
+            } label: {
+                Text("Open System Settings")
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
             }
             .buttonStyle(.borderedProminent)
 
-            Spacer()
+            Divider()
 
-            Button("Quit") {
+            Button {
                 NSApp.terminate(nil)
+            } label: {
+                Text("Quit PressViz")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .contentShape(Rectangle())
+                    .background {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(isQuitHovering ? Color.primary.opacity(0.1) : Color.clear)
+                    }
             }
-            .buttonStyle(.borderless)
-            .foregroundStyle(.secondary)
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isQuitHovering = hovering
+            }
+            .padding(.bottom, 4)
         }
-        .padding(24)
+        .padding()
     }
 }
 

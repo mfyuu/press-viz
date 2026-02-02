@@ -9,6 +9,16 @@ A native macOS app for visualizing keyboard presses.
 3. Drag PressViz to your Applications folder
 4. Launch PressViz from Applications
 
+### Security Note
+
+PressViz is not notarized by Apple. On first launch, macOS may block the app.
+
+To allow it, run this command in Terminal:
+
+```bash
+xattr -cr /Applications/PressViz.app
+```
+
 ### Requirements
 
 - macOS 26.2+
@@ -17,8 +27,10 @@ A native macOS app for visualizing keyboard presses.
 
 PressViz requires **Accessibility** permission to monitor keyboard input.
 
-1. Open System Settings > Privacy & Security > Accessibility
-2. Enable PressViz
+On first launch, macOS will prompt you to grant permission. If you dismissed the prompt:
+
+- Click the PressViz icon in the menu bar to open the permission guide, or
+- Enable manually: System Settings > Privacy & Security > Accessibility
 
 ## Development
 

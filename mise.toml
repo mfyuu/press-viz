@@ -46,3 +46,11 @@ create-dmg \
 
 echo "Created ${APP_NAME}.dmg"
 """
+
+[tasks.reset-accessibility]
+description = "Reset Accessibility permission for PressViz"
+run = "tccutil reset Accessibility com.mfyuu.PressViz"
+
+[tasks.remove-quarantine]
+description = "Remove quarantine attribute from PressViz.app"
+run = "xattr -cr /Applications/PressViz.app"

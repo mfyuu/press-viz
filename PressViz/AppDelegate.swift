@@ -30,7 +30,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             AppSettings.shared.hasCompletedOnboarding = true
             startVisualization()
         } else {
-            // 権限がない場合は監視を開始して、付与されたら自動で開始
+            // ネイティブダイアログを表示（BundleIDごとに1回のみ有効）
+            permissionManager.requestAccessibility()
+            // 権限付与を監視して、付与されたら自動で開始
             permissionManager.startMonitoring()
         }
     }

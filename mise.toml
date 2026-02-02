@@ -48,6 +48,12 @@ create-dmg \
 echo "Created ${APP_NAME}.dmg"
 """
 
+[tasks.publish]
+description = "Create GitHub release with DMG"
+usage = 'arg "<version>"'
+depends = ["dmg"]
+run = "gh release create v${usage_version} PressViz.dmg --title \"v${usage_version}\" --generate-notes"
+
 [tasks.reset-accessibility]
 description = "Reset Accessibility permission for PressViz"
 run = "tccutil reset Accessibility com.mfyuu.PressViz"

@@ -30,7 +30,7 @@ struct AboutTabView: View {
             }
 
             Button {
-                if let url = URL(string: "https://github.com/mfyuu/PressViz") {
+                if let url = URL(string: "https://github.com/mfyuu/press-viz") {
                     NSWorkspace.shared.open(url)
                 }
             } label: {
@@ -41,7 +41,7 @@ struct AboutTabView: View {
             }
             .buttonStyle(.link)
 
-            Text("© 2025 mfyuu")
+            Text("© 2026 mfyuu")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
 

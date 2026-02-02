@@ -15,8 +15,9 @@ description = "Show current version"
 run = "grep -m1 'MARKETING_VERSION' PressViz.xcodeproj/project.pbxproj | sed 's/.*= //; s/;$//'"
 
 [tasks."version:set"]
-description = "Set version (usage: mise run version:set 1.0.0)"
-run = "sed -i '' \"s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = $1/g\" PressViz.xcodeproj/project.pbxproj && mise run version"
+description = "Set version"
+usage = 'arg "<version>"'
+run = "sed -i '' \"s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${usage_version}/g\" PressViz.xcodeproj/project.pbxproj && mise run version"
 
 [tasks.dmg]
 description = "Create DMG for distribution"

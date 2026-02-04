@@ -155,7 +155,7 @@ final class OverlayWindowManager {
             defer: false
         )
 
-        window.level = .screenSaver
+        window.level = .floating
         window.backgroundColor = .clear
         window.isOpaque = false
         window.hasShadow = false
